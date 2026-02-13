@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://dgu0h5kwun331"]
+
+[ext_resource type="Script" uid="uid://cbo08wwpxuetv" path="res://Scripts/World.cs" id="1_fj7yv"]
+[ext_resource type="Script" uid="uid://ba170k6ahihan" path="res://Scripts/Player.cs" id="2_tlwt5"]
+
+[sub_resource type="Sky" id="Sky_f3sb7"]
+
+[sub_resource type="Environment" id="Environment_f3sb7"]
+background_mode = 1
+background_color = Color(0.38959873, 0.71001464, 0.93620235, 1)
+sky = SubResource("Sky_f3sb7")
+
+[sub_resource type="Compositor" id="Compositor_fj7yv"]
+
+[node name="World" type="Node3D" unique_id=1223016950]
+script = ExtResource("1_fj7yv")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1549422722]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 45, 0)
+visible = false
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1956071107]
+environment = SubResource("Environment_f3sb7")
+compositor = SubResource("Compositor_fj7yv")
+
+[node name="Player" type="Node3D" parent="." unique_id=1744265062]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 10, 0)
+script = ExtResource("2_tlwt5")
+
+[node name="Camera3D" type="Camera3D" parent="Player" unique_id=1145882328]
+transform = Transform3D(0.7071068, -0.35355338, 0.61237246, 0, 0.8660254, 0.50000006, -0.7071068, -0.35355338, 0.61237246, 0, 0, 0)
