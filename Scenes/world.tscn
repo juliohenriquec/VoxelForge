@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://dgu0h5kwun331"]
+
+[ext_resource type="PackedScene" uid="uid://djnj76lssiyqb" path="res://Scenes/player.tscn" id="1_a02cp"]
+[ext_resource type="Script" uid="uid://cii4nuwm6tcda" path="res://Scripts/World.cs" id="1_go701"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_fj7yv"]
+sky_top_color = Color(0.20086065, 0.39443848, 0.9941283, 1)
+sky_horizon_color = Color(0.60368514, 0.7834647, 0.9900692, 1)
+ground_bottom_color = Color(0.12775737, 0.17156807, 0.2725384, 1)
+ground_horizon_color = Color(0.6039216, 0.78431374, 0.9882353, 1)
+
+[sub_resource type="Sky" id="Sky_tlwt5"]
+sky_material = SubResource("ProceduralSkyMaterial_fj7yv")
+process_mode = 1
+
+[sub_resource type="Environment" id="Environment_f3sb7"]
+background_mode = 1
+background_color = Color(0.41571045, 0.84025973, 0.9369561, 1)
+sky = SubResource("Sky_tlwt5")
+sky_custom_fov = 10.8
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.3
+
+[sub_resource type="Compositor" id="Compositor_fj7yv"]
+
+[node name="World" type="Node3D" unique_id=1223016950]
+script = ExtResource("1_go701")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1956071107]
+environment = SubResource("Environment_f3sb7")
+compositor = SubResource("Compositor_fj7yv")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1002880136]
+transform = Transform3D(0.7071068, -0.61237246, 0.35355335, 0, 0.49999997, 0.86602545, -0.7071068, -0.61237246, 0.35355335, 0, 6.241271, 14.556601)
+light_energy = 1.2
+light_volumetric_fog_energy = 0.0
+shadow_enabled = true
+sky_mode = 1
+
+[node name="Player" parent="." unique_id=1407626933 instance=ExtResource("1_a02cp")]
+transform = Transform3D(-0.9989379, 0, 0.046077922, 0, 1, 0, -0.046077922, 0, -0.9989379, 0, 200, -0.202)
+motion_mode = 0

@@ -1,16 +1,15 @@
 using Godot;
 using System;
+using Godot.Collections;
 
-public partial class Player : Node3D
+public partial class Player : CharacterBody3D
 {
-	[Export] public float Speed = 10.0f;
-	[Export] public float MouseSensitivity = 0.002f;
+	[Export] public float Speed = 20.0f; // velocidade do player
+	[Export] public float MouseSensitivity = 0.002f; //sensibilidade do mouse
 	
 	Camera3D camera;
 	float pitch = 0.0f;
 	
-	
-	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		camera = GetNode<Camera3D>("Camera3D");
@@ -22,17 +21,17 @@ public partial class Player : Node3D
 	{
 		if (e is InputEventMouseMotion motion)
 		{
-			RotateY(-motion.Relative.X * MouseSensitivity);
+			RotateY(-motion.Relative.X * MouseSensitivity); // rotação horizontal
 			
-			pitch -= motion.Relative.Y * MouseSensitivity;
-			pitch = Mathf.Clamp(pitch, -1.5f, 1.5f);
+			pitch -= motion.Relative.Y * MouseSensitivity; //Rotação vertical
+			pitch = Mathf.Clamp(pitch, -1.5f, 1.5f); //limite da rotação
 			
-			camera.Rotation = new Vector3(pitch, 0.0f, 0.0f);
+			camera.Rotation = new Vector3(pitch, 0.0f, 0.0f); //define a rotação da camera
+
 		}
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
+	public override void _PhysicsProcess(double delta)
 	{
 		Vector3 direction = Vector3.Zero;
 		
@@ -50,5 +49,10 @@ public partial class Player : Node3D
 			direction -= Transform.Basis.Y;
 		
 		Position += direction.Normalized() * Speed * (float)delta;
+		MoveAndSlide(); 
+		
+		if (Input.IsActionPressed("liberar_mouse"))
+			Input.MouseMode = Input.MouseModeEnum.Visible;
+			
 	}
 }
