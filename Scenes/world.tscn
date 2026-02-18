@@ -24,8 +24,9 @@ ambient_light_energy = 0.3
 
 [sub_resource type="Compositor" id="Compositor_fj7yv"]
 
-[node name="World" type="Node3D" unique_id=1223016950]
+[node name="World" type="Node3D" unique_id=1223016950 node_paths=PackedStringArray("PlayerReference")]
 script = ExtResource("1_go701")
+PlayerReference = NodePath("Player")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1956071107]
 environment = SubResource("Environment_f3sb7")

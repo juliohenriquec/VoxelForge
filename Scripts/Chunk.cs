@@ -6,7 +6,7 @@ public partial class Chunk : Node3D
 {
     private FastNoiseLite _noise;
     public const int CHUNK_WIDTH = 16;
-    public const int CHUNK_HEIGHT = 384;
+    public const int CHUNK_HEIGHT = 50;
     public const int CHUNK_DEPTH = 16;
     private BlockType[,,] _blocks; //Array 3D de Blocos
 
