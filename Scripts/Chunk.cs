@@ -17,7 +17,10 @@ public partial class Chunk : Node3D
     private BlockType[,,] _blocks; //Array 3D de Blocos
     private static StandardMaterial3D _standardMaterial; //Material 3D
 
-
+    
+    private MeshInstance3D _meshInstance;
+    
+    public World WorldRef { get; set; }
     
     //Criando tipos de blocos e salvando em um enum
     public enum BlockType : byte
@@ -28,24 +31,42 @@ public partial class Chunk : Node3D
         Stone = 3,
     }
     
+    public BlockType GetBlock(int x, int y, int z)
+    {
+        return _blocks[x, y, z];
+    }
+    
     
     public void GenerateMesh()
     {
+        if (_meshInstance != null)
+        {
+            _meshInstance.QueueFree();
+            _meshInstance = null;
+        }
+        
+        //obter vizinhos(pode ser null)
+        Chunk northChunk = WorldRef?.GetChunk(new Vector2I(GridPosition.X, GridPosition.Y - 1));
+        Chunk southChunk = WorldRef?.GetChunk(new Vector2I(GridPosition.X, GridPosition.Y + 1));
+        Chunk westChunk = WorldRef?.GetChunk(new Vector2I(GridPosition.X-1, GridPosition.Y));
+        Chunk eastChunk = WorldRef?.GetChunk(new Vector2I(GridPosition.X+1, GridPosition.Y));
+        
+        //GD.Print($"Gerando chunk {GridPosition}. Vizinhos: N:{northChunk?.GridPosition} S:{southChunk?.GridPosition} L:{eastChunk?.GridPosition} O:{westChunk?.GridPosition}");
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var st = new SurfaceTool();
         st.Begin(Mesh.PrimitiveType.Triangles);
-        int x, y, z;
         int vertexCount = 0;
         
-        for(x = 0; x< CHUNK_WIDTH; x++ )
-        for (z = 0; z < CHUNK_DEPTH; z++)
+        for(int x = 0; x< CHUNK_WIDTH; x++ )
+        for (int z = 0; z < CHUNK_DEPTH; z++)
         {
             int maxY = _heightMap[x, z];
-            for (y = 0; y <= maxY; y++)
+            for (int y = 0; y <= maxY; y++)
             {
-                if (_blocks[x, y, z] != BlockType.Air)
-                {
+                if (_blocks[x, y, z] == BlockType.Air) continue;
+                
                 Color blockColor = GetColor(_blocks[x, y, z]);
+                
                 //Face superior
                 if (y + 1 >= CHUNK_HEIGHT || _blocks[x, y + 1, z] == BlockType.Air)
                 {
@@ -74,7 +95,25 @@ public partial class Chunk : Node3D
 
 
                 //Face norte z = z
-                if (z == 0 || _blocks[x, y, z - 1] == BlockType.Air)
+                if (z == 0)
+                {
+                    // Verifica se há chunk norte e se o bloco correspondente é sólido
+                    bool hidden = (northChunk != null && northChunk.GetBlock(x,y, CHUNK_DEPTH - 1)  != BlockType.Air);
+
+                    if (!hidden)
+                    {
+                        GD.Print($"Face norte em ({x},{y},{z}) não oculta, hidden={hidden}, northChunk existe? {northChunk != null}");
+                        AddFace(st,
+                            ref vertexCount,
+                            new Vector3(x, y, z),
+                            new Vector3(x + 1, y, z),
+                            new Vector3(x + 1, y + 1, z),
+                            new Vector3(x, y + 1, z),
+                            Vector3.Forward,
+                            blockColor);
+                    }
+                }
+                else if (_blocks[x, y, z - 1] == BlockType.Air)
                 {
                     AddFace(st,
                         ref vertexCount,
@@ -88,7 +127,26 @@ public partial class Chunk : Node3D
 
 
                 // Face sul (z = z+1)
-                if (z + 1 >= CHUNK_DEPTH || _blocks[x, y, z + 1] == BlockType.Air)
+                if (z == CHUNK_DEPTH -1 )
+                {
+                    // Verifica se há chunk sul e se o bloco correspondente é sólido
+                    bool hidden = (southChunk != null && southChunk.GetBlock(x,y,0)  != BlockType.Air);
+
+                    if (!hidden)
+                    {
+                        GD.Print($"Face sul em ({x},{y},{z}) não oculta, hidden={hidden}, SouthChunk existe? {southChunk != null}");
+                        AddFace(st,
+                            ref vertexCount,
+                            new Vector3(x, y, z + 1),
+                            new Vector3(x, y + 1, z + 1),
+                            new Vector3(x + 1, y + 1, z + 1),
+                            new Vector3(x + 1, y, z + 1),
+                            Vector3.Back,
+                            blockColor);
+                    }
+
+                }
+                else if (_blocks[x, y, z + 1] == BlockType.Air)
                 {
                     AddFace(st,
                         ref vertexCount,
@@ -102,7 +160,22 @@ public partial class Chunk : Node3D
 
 
                 // Face leste (x = x+1)
-                if (x + 1 >= CHUNK_WIDTH || _blocks[x + 1, y, z] == BlockType.Air)
+                if (x == CHUNK_WIDTH - 1)
+                {
+                    bool hidden = (eastChunk != null && eastChunk.GetBlock(0, y, z) != BlockType.Air);
+                    if (!hidden)
+                    {
+                        GD.Print($"Face leste em ({x},{y},{z}) não oculta, hidden={hidden}, eastChunk existe? {eastChunk != null}");
+                        AddFace(st, ref vertexCount,
+                            new Vector3(x + 1, y, z),
+                            new Vector3(x + 1, y, z + 1),
+                            new Vector3(x + 1, y + 1, z + 1),
+                            new Vector3(x + 1, y + 1, z),
+                            Vector3.Right,
+                            blockColor);
+                    }
+                }
+                else if (_blocks[x + 1, y, z] == BlockType.Air)
                 {
                     AddFace(st,
                         ref vertexCount,
@@ -116,7 +189,22 @@ public partial class Chunk : Node3D
 
 
                 // Face oeste (x = x)
-                if (x == 0 || _blocks[x - 1, y, z] == BlockType.Air)
+                if (x == 0 )
+                {
+                    bool hidden = (westChunk != null && westChunk.GetBlock(CHUNK_WIDTH - 1, y, z) != BlockType.Air);
+                    if (!hidden)
+                    {
+                        GD.Print($"Face oeste em ({x},{y},{z}) não oculta, hidden={hidden}, westChunk existe? {westChunk != null}");
+                        AddFace(st, ref vertexCount,
+                            new Vector3(x, y + 1, z),
+                            new Vector3(x, y + 1, z + 1),
+                            new Vector3(x, y, z + 1),
+                            new Vector3(x, y, z),
+                            Vector3.Left,
+                            blockColor);
+                    }
+                }
+                else if (_blocks[x - 1, y, z] == BlockType.Air)
                 {
                     AddFace(st,
                         ref vertexCount,
@@ -127,9 +215,6 @@ public partial class Chunk : Node3D
                         Vector3.Left,
                         blockColor);
                 }
-            }
-            
-
             }
         }
 
@@ -145,9 +230,10 @@ public partial class Chunk : Node3D
 
         meshblock.MaterialOverride = _standardMaterial;
         
-        AddChild(meshblock);
+        _meshInstance = meshblock;
+        AddChild(_meshInstance);
         sw.Stop();
-        GD.Print($"Chunk {GridPosition} gerado em {sw.ElapsedMilliseconds} ms");
+        //GD.Print($"Chunk {GridPosition} gerado em {sw.ElapsedMilliseconds} ms");
         
     }
     
@@ -219,6 +305,7 @@ public partial class Chunk : Node3D
         st.AddVertex(v3);
         
         // Adiciona os índices dos dois triângulos
+        //usar indices evita que a o v0 v2 sejam desenhados duas vezes no mesmo quadrado, reduzindo de 6 para 4 vertices
         //triangulo 1
         st.AddIndex(vertexCount);
         st.AddIndex(vertexCount + 1);
@@ -243,5 +330,18 @@ public partial class Chunk : Node3D
 
         }
 
+    }
+    
+    public void RegenerateMesh()
+    {
+        // Remove a malha antiga (se houver)
+        foreach (Node child in GetChildren())
+        {
+            if (child is MeshInstance3D)
+            {
+                child.QueueFree();
+            }
+        }
+        GenerateMesh();
     }
 }
