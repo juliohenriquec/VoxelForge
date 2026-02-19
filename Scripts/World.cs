@@ -7,45 +7,37 @@ public partial class World : Node3D
 {
 	[Export] public CharacterBody3D PlayerReference { get; set; } 
 	private Godot.Collections.Dictionary<Vector2I, Chunk> _chunks = new Godot.Collections.Dictionary<Vector2I, Chunk>();
-	private int loadDistance = 5;
+	private int loadDistance = 7;
 	private CharacterBody3D _player;
 	private Timer _updateTimer;
 	
 	private Queue<Vector2I> _chunksToGenerate = new Queue<Vector2I>();
 	private HashSet<Vector2I> _pendingChunks = new HashSet<Vector2I>();
-	private int _maxGenerationsPerFrame = 2;
+	
+	private int _maxGenerationsPerFrame = 4;
+	private const float TARGET_FRAME_TIME_MS = 16f; // para 60 FPS (1000/60 ≈ 16.66ms)
 	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		//_player = GetNode<CharacterBody3D>(".../Player");
-	
-		
 		_updateTimer = new Timer();
 		_updateTimer.WaitTime = 0.5;
 		_updateTimer.Timeout += UpdateChunk;
 		_updateTimer.Autostart = true;
 		AddChild(_updateTimer);
-		//gerando um quadrado de 5x5 chunks
-		// for (int x = -2; x <= 2; x++)
-		// 	for (int z = -2; z <= 2; z++)
-		// 	{
-		// 		Chunk chunk = new Chunk();
-		// 		chunk.GridPosition = new Vector2I(x, z);
-		// 		chunk.Position = new Vector3(chunk.GridPosition.X * Chunk.CHUNK_WIDTH, 0, chunk.GridPosition.Y * Chunk.CHUNK_DEPTH);
-		// 		chunk.InitializeBlocks();
-		// 		chunk.GenerateMesh();
-		// 		AddChild(chunk); 
-		// 	}
-
 	}
 	
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
+		//Se não tiver chunks na fila, não faz nada
+		if(_chunksToGenerate.Count == 0) return;
+		
 		int count = 0;
-		while (_chunksToGenerate.Count > 0 && count < _maxGenerationsPerFrame)
+		var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+		
+		while (_chunksToGenerate.Count > 0 && count < _maxGenerationsPerFrame && stopwatch.ElapsedMilliseconds < TARGET_FRAME_TIME_MS)
 		{
 			Vector2I pos = _chunksToGenerate.Dequeue();
 			_pendingChunks.Remove(pos);
@@ -60,17 +52,22 @@ public partial class World : Node3D
 				chunk.GenerateMesh();
 				AddChild(chunk); 
 				_chunks[pos] = chunk;
-				GD.Print($"Carregando chunk {pos}");	
 			}
 			count++;
+			
+			//Verifica se o tempo gasto ultrapassou o limite
+			if (stopwatch.ElapsedMilliseconds >= TARGET_FRAME_TIME_MS)
+			{
+				GD.Print($"Limite de tempo atingido após gerar {count} chunks. Parando por este frame.");
+				break;
+			}
 		}
 
 	}
 	public void UpdateChunk()
 	{
-
 		if (PlayerReference == null) return;
-		
+		//Pega a posição do player
 		int playerChunkX = Mathf.FloorToInt(PlayerReference.GlobalPosition.X / Chunk.CHUNK_WIDTH);
 		int playerChunkZ = Mathf.FloorToInt(PlayerReference.GlobalPosition.Z / Chunk.CHUNK_DEPTH);
 

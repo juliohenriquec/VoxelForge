@@ -40,5 +40,5 @@ shadow_enabled = true
 sky_mode = 1
 
 [node name="Player" parent="." unique_id=1407626933 instance=ExtResource("1_a02cp")]
-transform = Transform3D(-0.9989379, 0, 0.046077922, 0, 1, 0, -0.046077922, 0, -0.9989379, 0, 200, -0.202)
+transform = Transform3D(-0.9989379, 0, 0.046077922, 0, 1, 0, -0.046077922, 0, -0.9989379, 0, 250, -0.202)
 motion_mode = 0
