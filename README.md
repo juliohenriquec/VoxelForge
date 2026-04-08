@@ -50,7 +50,8 @@ This project is currently in development.
 
 ## 📸 Preview
 
-*(Add screenshots or GIFs here as the project evolves)*
+<img width="2512" height="1048" alt="image" src="https://github.com/user-attachments/assets/19240dfc-4a96-40c7-b8bb-a45d24b10bd9" />
+
 
 ---
 
